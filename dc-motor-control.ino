@@ -9,15 +9,17 @@ const int brakePin2 = 10;
 
 int pulseCounter = 0;
 int pulseCounterMax = 0;
+int targetLaps = 0;
+bool motor2Active = false;
 
 void pulseMotor1() {
   Serial.print("Pulse : ");
   Serial.println(pulseCounter);
   if (pulseCounter >= pulseCounterMax) {
-    digitalWrite(pwmPin1, HIGH); // Motor 1 kapalı
-    digitalWrite(brakePin1, LOW); // Motor 1 frenle
-    Serial.println("Motor 1 durdu. Motor 2 çalışacak.");
-    dc2Tur();
+    digitalWrite(pwmPin1, HIGH);
+    digitalWrite(brakePin1, LOW); 
+    Serial.println("Motor 1 stopped.");
+    motor2Active = true; 
     pulseCounterMax = 0;
     pulseCounter = 0;
   }
@@ -26,30 +28,33 @@ void pulseMotor1() {
 
 void dc1Tur(int tur) {
   pulseCounterMax = tur * 250;
-  digitalWrite(frPin1, HIGH); // Motor 1 yönü
-  digitalWrite(pwmPin1, LOW); // Motor 1 aç
-  digitalWrite(brakePin1, HIGH); // Motor 1 serbest bırak
-  Serial.println("Motor 1 çalışmaya başladı.");
+  digitalWrite(frPin1, HIGH);
+  digitalWrite(pwmPin1, LOW); 
+  digitalWrite(brakePin1, HIGH); 
+  Serial.println("Motor 1 started.");
 }
 
 void dc2Tur() {
-  Serial.println("Motor 2 çalışmaya başladı.");
-  digitalWrite(frPin2, HIGH); // Motor 2 yönü
-  digitalWrite(pwmPin2, LOW); // Motor 2 aç
-  digitalWrite(brakePin2, HIGH); // Motor 2 serbest bırak
-  delay(5000);
+  
+  Serial.println("Motor 2 starting.");
+  digitalWrite(frPin2, HIGH); 
+  digitalWrite(brakePin2, HIGH);
+  digitalWrite(pwmPin2, LOW);
+  delay(5000); 
 
-  Serial.println("Motor 2 durduruluyor.");
-  digitalWrite(pwmPin2, HIGH); // Motor 2 kapalı
-  digitalWrite(brakePin2, LOW); // Motor 2 frenle
 
-  delay(2000); // Motorların durduğundan emin olmak için 2 saniye bekle
+  Serial.println("Motor 2 stopping.");
+  digitalWrite(pwmPin2, HIGH); 
+  digitalWrite(brakePin2, LOW); 
+
+  delay(2000); 
+  motor2Active  = false ;
 }
 
 void setup() {
   Serial.begin(9600);
 
-  // Motor 1 ayarları
+  // Motor 1 setup
   pinMode(frPin1, OUTPUT);
   pinMode(pwmPin1, OUTPUT);
   pinMode(brakePin1, OUTPUT);
@@ -58,7 +63,7 @@ void setup() {
   digitalWrite(pwmPin1, HIGH); 
   attachInterrupt(digitalPinToInterrupt(fgPin), pulseMotor1, RISING);
 
-  // Motor 2 ayarları
+  // Motor 2 setup
   pinMode(frPin2, OUTPUT);
   pinMode(pwmPin2, OUTPUT);
   pinMode(brakePin2, OUTPUT);
@@ -78,5 +83,8 @@ void loop() {
     } else {
       Serial.println("Invalid input. Please enter a positive number of laps.");
     }
+  }
+  if(motor2Active){
+    dc2Tur();
   }
 }
